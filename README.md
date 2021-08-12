@@ -34,8 +34,60 @@ You can install manually or using Homebrew on OS:
     ```
     brew upgrade hashicorp/tap/packer
     ```
+- Linux (Ubuntu):
+    - Add the HashiCorp GPG key.
+    ```
+    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+    ```
 
+    - Add the official HashiCorp Linux repository.
+    ```
+    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+    ```
+
+    - Update and install
+    ```
+    sudo apt-get update && sudo apt-get install packer
+    ```
+    
 Verify your installation by using the command `packer`
 
 #### Build an AMI 
+Packer files are written in JSON
 
+```
+{
+{
+    "variables": {
+      "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+      "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+    },
+    "builders": [
+      {
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "eu-west-1",
+        "source_ami_filter": {
+          "filters": {
+            "virtualization-type": "hvm",
+            "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+            "root-device-type": "ebs"
+          },
+          "owners": ["099720109477"],
+          "most_recent": true
+        },
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "ami_name": "eng89_brittany_packer_ami"
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "../playbooks/app_playbook.yaml"
+      }
+    ]
+  }
+  
+```
